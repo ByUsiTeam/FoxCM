@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/Font/css/all.css" rel="stylesheet">
+    <link href="/manifest.json" rel="manifest">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+        }
+        header {
+            background-color: #343a40;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .search-bar {
+            background-color: #f8f9fa;
+            padding: 15px 0;
+        }
+        .search-bar form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        h1, h2 {
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="{{ url_for('index') }}">首页</a>
+                    {% if session.get('logged_in') %}
+                    <a href="{{ url_for('upload') }}">上传视频</a>
+                    <a href="{{ url_for('logout') }}">注销</a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}">登录</a>
+                    <a href="{{ url_for('register') }}">注册</a>
+                    {% endif %}
+                    <a href="https://www.123pan.com/s/anv6jv-4RO4h">FoxCM 源代码下载</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <div class="search-bar">
+        <div class="container">
+            <form class="form-inline" action="{{ url_for('search') }}" method="get">
+                <div class="input-group">
+                    <input type="search" class="form-control" placeholder="搜索视频" name="q" aria-label="搜索">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <button id="install-button" style="display: none;">Install-FoxCM</button>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+    <script>
+      let deferredPrompt;
+
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+        showInstallPromotion();
+      });
+
+      function showInstallPromotion() {
+        const installButton = document.getElementById('install-button');
+        installButton.style.display = 'block';
+        installButton.addEventListener('click', async () => {
+          const response = await deferredPrompt.prompt();
+          deferredPrompt = null;
+          if (response.outcome === 'accepted') {
+            console.log('User accepted the A2HS prompt');
+          } else {
+            console.log('User dismissed the A2HS prompt');
+          }
+        });
+      }
+    </script>
+</body>
+</html>
