@@ -17,11 +17,11 @@ template_folder = os.path.join(base_path, "templates")
 static_folder = os.path.join(base_path, "static")
 data_folder = os.path.join(base_path, "data")
 
-# app = Flask(__name__)
 app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 app.secret_key = 'FoxCM.secret_key'
 app.config['UPLOAD_FOLDER'] = os.path.join(static_folder, 'uploads/videos')
 app.config['COVER_FOLDER'] = os.path.join(static_folder, 'uploads/covers')
+app.config['AVATAR_FOLDER'] = os.path.join(static_folder, 'uploads/avatars')  # 新增头像上传目录
 USER_DATA_FILE = os.path.join(data_folder, 'user.json')
 VIDEO_DATA_FILE = os.path.join(data_folder, 'foxcm-sp.json')
 SYSTEM_DATA = os.path.join(data_folder, 'system.json')
@@ -30,6 +30,7 @@ ADMIN = False
 
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov'}
 ALLOWED_COVER_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+ALLOWED_AVATAR_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}  # 新增头像允许格式
 
 def generate_random_filename(length=10):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -52,7 +53,12 @@ def save_comments(comments):
 def load_users():
     try:
         with open(USER_DATA_FILE, 'r') as file:
-            return json.load(file)
+            users = json.load(file)
+            # 为旧用户添加avatar_filename字段
+            for user in users:
+                if 'avatar_filename' not in user:
+                    user['avatar_filename'] = ''
+            return users
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
@@ -113,7 +119,8 @@ def register():
             "id": len(users) + 1,
             "username": username,
             "password": password,
-            "is_admin": ADMIN
+            "is_admin": ADMIN,
+            "avatar_filename": ''  # 初始化头像字段
         }
         users.append(new_user)
         save_users(users)
@@ -196,9 +203,58 @@ def play(video_filename):
         save_videos(videos)
         comments = load_comments().get(video['video_filename'], [])
         title = get_system_title()
-        return render_template('play.html', video=video, title=title, comments=comments)
+        uploader_user = find_user_by_id(video['user_id'])
+        return render_template('play.html', video=video, title=title, comments=comments, uploader=uploader_user)
     flash('视频不存在！')
     return redirect(url_for('index'))
+
+@app.route('/user/<username>')
+def user_profile(username):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    user = find_user_by_username(username)
+    if not user:
+        flash('用户不存在')
+        return redirect(url_for('index'))
+    videos = load_videos()
+    user_videos = [v for v in videos if v['user_id'] == user['id']]
+    title = get_system_title()
+    return render_template('user_profile.html', user=user, videos=user_videos, title=title)
+
+@app.route('/upload_avatar', methods=['POST'])
+def upload_avatar():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    user = find_user_by_id(session['user_id'])
+    if not user:
+        flash('用户不存在')
+        return redirect(url_for('index'))
+    if 'avatar' not in request.files:
+        flash('未选择文件')
+        return redirect(url_for('user_profile', username=user['username']))
+    avatar_file = request.files['avatar']
+    if avatar_file.filename == '':
+        flash('未选择文件')
+        return redirect(url_for('user_profile', username=user['username']))
+    if allowed_file(avatar_file.filename, ALLOWED_AVATAR_EXTENSIONS):
+        ext = avatar_file.filename.rsplit('.', 1)[1].lower()
+        new_filename = f"{uuid.uuid4()}.{ext}"  # 重命名头像文件
+        avatar_path = os.path.join(app.config['AVATAR_FOLDER'], new_filename)
+        avatar_file.save(avatar_path)
+        if user.get('avatar_filename'):
+            old_path = os.path.join(app.config['AVATAR_FOLDER'], user['avatar_filename'])
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        users = load_users()
+        for u in users:
+            if u['id'] == user['id']:
+                u['avatar_filename'] = new_filename
+                break
+        save_users(users)
+        flash('头像上传成功')
+    else:
+        flash('仅支持jpg、png格式')
+    return redirect(url_for('user_profile', username=user['username']))
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
@@ -328,6 +384,7 @@ def like_comment():
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['COVER_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)  # 新增头像目录
     os.makedirs('data', exist_ok=True)
     if not os.path.exists(USER_DATA_FILE):
         with open(USER_DATA_FILE, 'w') as file:

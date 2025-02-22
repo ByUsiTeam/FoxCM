@@ -27,7 +27,14 @@
                     <h1 class="card-title text-primary mb-3">{{ video.title }}</h1>
                     <p class="card-text">{{ video.description }}</p>
                     <ul class="list-unstyled text-muted mb-4">
-                        <li><strong>上传者:</strong> {{ video.uploader }}</li>
+                        <li>
+                            <strong>上传者:</strong> 
+                            <a href="{{ url_for('user_profile', username=video.uploader) }}" class="text-decoration-none">
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + uploader.avatar_filename) if uploader.avatar_filename else url_for('static', filename='images/default_avatar.png') }}" 
+                                     alt="上传者头像" class="rounded-circle" style="width: 30px; height: 30px;">
+                                <span class="ms-2">{{ video.uploader }}</span>
+                            </a>
+                        </li>
                         <li><strong>上传时间:</strong> {{ video.upload_time }}</li>
                         <li><strong>播放次数:</strong> {{ video.play_count }}</li>
                         <li><font color="#FF0000">视频由用户自主上传，与该平台无关</font></li>
