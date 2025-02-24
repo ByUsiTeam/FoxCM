@@ -29,7 +29,7 @@
                     <ul class="list-unstyled text-muted mb-4">
                         <li>
                             <strong>上传者:</strong> 
-                            <a href="{{ url_for('user_profile', username=video.uploader) }}" class="text-decoration-none">
+                            <a target="_blank" href="{{ url_for('user_profile', username=video.uploader) }}" class="text-decoration-none">
                                 <img src="{{ url_for('static', filename='uploads/avatars/' + uploader.avatar_filename) if uploader.avatar_filename else url_for('static', filename='images/default_avatar.png') }}" 
                                      alt="上传者头像" class="rounded-circle" style="width: 30px; height: 30px;">
                                 <span class="ms-2">{{ video.uploader }}</span>

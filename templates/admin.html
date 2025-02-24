@@ -74,7 +74,7 @@
                                 <input type="hidden" name="action" value="delete_video">
                                 <input type="hidden" name="video_filename" value="{{ video.video_filename }}">
                                 <button type="submit" class="btn btn-danger btn-sm">删除</button>
-                                <a href="{{ url_for('play', video_filename=video['video_filename']) }}" class="btn btn-primary btn-block">观看</a>
+                                <a target="_blank" href="{{ url_for('play', video_filename=video['video_filename']) }}" class="btn btn-primary btn-block">观看</a>
                             </form>
                         </td>
                     </tr>

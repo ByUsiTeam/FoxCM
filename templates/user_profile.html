@@ -19,7 +19,7 @@
         {% for video in videos %}
         <div class="col-md-4 mb-4">
             <div class="card">
-                <a href="{{ url_for('play', video_filename=video.video_filename) }}">
+                <a target="_blank" href="{{ url_for('play', video_filename=video.video_filename) }}">
                     <img src="{{ url_for('static', filename='uploads/covers/' + video.cover_filename) }}" 
                          class="card-img-top" 
                          alt="{{ video.title }}">
