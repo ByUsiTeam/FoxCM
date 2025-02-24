@@ -1,4 +1,4 @@
 git.sh
 *.bak
-uploads/
-data/
+static/uploads
+data
