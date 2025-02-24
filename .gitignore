@@ -1,2 +1,4 @@
 git.sh
 *.bak
+uploads/
+data/
