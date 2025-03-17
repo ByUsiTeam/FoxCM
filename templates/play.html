@@ -92,6 +92,27 @@
 <!-- 引入 DPlayer -->
 <link href="/static/css/DPlayer.min.css" rel="stylesheet">
 <script src="/static/js/DPlayer.min.js"></script>
+<script src="/static/js/hls.js"></script>
+<script src="/static/js/flv.js"></script>
+<style>
+    /* 自定义播放器样式 */
+    .dplayer-controller {
+        background: rgba(255, 255, 255, 0.9) !important;
+    }
+    .dplayer-icons .dplayer-icon {
+        color: #495057;
+    }
+    .dplayer-icons .dplayer-icon:hover {
+        color: #007bff;
+    }
+    .dplayer-setting-box {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid #dee2e6;
+    }
+    .dplayer-setting-item:hover {
+        background-color: #f8f9fa !important;
+    }
+</style>
 <script>
     const dp = new DPlayer({
         container: document.getElementById('dplayer'),
@@ -100,8 +121,30 @@
             pic: "{{ url_for('static', filename='uploads/covers/' + video.cover_filename) }}",
             type: 'auto'
         },
-        theme: '#f4a261',
-        autoplay: false
+        theme: '#007bff',  /* 使用Bootstrap主色调 */
+        autoplay: false,
+        contextmenu: [
+            {
+                text: '视频信息',
+                click: () => {
+                    alert(`视频标题：${document.title}\n上传者：{{ video.uploader }}`);
+                }
+            }
+        ],
+        playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],  /* 添加速度选项 */
+        settings: ['speed', 'loop'],  /* 明确显示设置项 */
+        hotkey: true
     });
+    
+    // 自动记录播放进度
+    dp.on('timeupdate', () => {
+        localStorage.setItem('videoProgress-{{ video.video_filename }}', dp.video.currentTime);
+    });
+    
+    // 恢复播放进度
+    const savedTime = localStorage.getItem('videoProgress-{{ video.video_filename }}');
+    if (savedTime) {
+        dp.seek(savedTime);
+    }
 </script>
 {% endblock %}

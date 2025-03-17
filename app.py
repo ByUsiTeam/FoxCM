@@ -18,7 +18,7 @@ static_folder = os.path.join(base_path, "static")
 data_folder = os.path.join(base_path, "data")
 
 app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
-app.secret_key = 'FoxCM.secret_key'
+app.secret_key = 'foxcm-key'
 app.config['UPLOAD_FOLDER'] = os.path.join(static_folder, 'uploads/videos')
 app.config['COVER_FOLDER'] = os.path.join(static_folder, 'uploads/covers')
 app.config['AVATAR_FOLDER'] = os.path.join(static_folder, 'uploads/avatars')  # 新增头像上传目录
@@ -28,7 +28,7 @@ SYSTEM_DATA = os.path.join(data_folder, 'system.json')
 COMMENT_DATA_FILE = os.path.join(data_folder, 'comments.json')
 ADMIN = False
 
-ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', '.mp3', '.ogg'}
 ALLOWED_COVER_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 ALLOWED_AVATAR_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}  # 新增头像允许格式
 

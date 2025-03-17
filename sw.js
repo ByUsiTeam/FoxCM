@@ -7,8 +7,8 @@ self.addEventListener('install', function(event) {
         '/static/Font/css/all.css',
         '/static/js/jquery.min.js',
         '/static/js/bootstrap.bundle.min.js',
-        '/static/icons/icon-192x192.png',
-        '/static/icons/icon-512x512.png'
+        '/static/js/hls.js',
+        '/static/js/flv.js'
       ]);
     })
   );
