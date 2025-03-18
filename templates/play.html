@@ -95,7 +95,7 @@
 <script src="/static/js/hls.js"></script>
 <script src="/static/js/flv.js"></script>
 <style>
-    /* 自定义播放器样式 */
+    /* 自定义播放器样式 
     .dplayer-controller {
         background: rgba(255, 255, 255, 0.9) !important;
     }
@@ -111,7 +111,7 @@
     }
     .dplayer-setting-item:hover {
         background-color: #f8f9fa !important;
-    }
+    } */
 </style>
 <script>
     const dp = new DPlayer({
@@ -121,7 +121,7 @@
             pic: "{{ url_for('static', filename='uploads/covers/' + video.cover_filename) }}",
             type: 'auto'
         },
-        theme: '#007bff',  /* 使用Bootstrap主色调 */
+        theme: '#007bff',
         autoplay: false,
         contextmenu: [
             {
@@ -131,8 +131,8 @@
                 }
             }
         ],
-        playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2],  /* 添加速度选项 */
-        settings: ['speed', 'loop'],  /* 明确显示设置项 */
+        playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2, 5, 10],  /* 添加速度选项 */
+        settings: ['speed', 'loop'],
         hotkey: true
     });
     
