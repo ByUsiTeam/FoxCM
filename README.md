@@ -3,7 +3,7 @@
 
 ## 仓库介绍
 - 中国境内
-> Gitee：<https://gitee.com/byusi/FoxCM>
+  > Gitee：<https://gitee.com/byusi/FoxCM>
 
 - 国际
-> GitHub：<https://github.com/ByUsiTeam/FoxCM>
+  > GitHub：<https://github.com/ByUsiTeam/FoxCM>
