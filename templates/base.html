@@ -5,32 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/Font/css/all.css" rel="stylesheet">
-    <link href="/manifest.json" rel="manifest">
     <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --text-color: #333;
+            --navbar-bg: #343a40;
+            --navbar-text: #fff;
+            --search-bar-bg: #f8f9fa;
+            --card-bg: #fff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #151515;
+                --text-color: #fff;
+                --navbar-bg: #2d2d2d;
+                --search-bar-bg: #2d2d2d;
+                --card-bg: #2d2d2d;
+            }
+        }
+
+        .dark-mode {
+            --bg-color: #151515;
+            --text-color: #fff;
+            --navbar-bg: #2d2d2d;
+            --search-bar-bg: #2d2d2d;
+            --card-bg: #2d2d2d;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            padding-top: 56px
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 56px;
+            transition: background-color 0.3s ease;
         }
+
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: var(--navbar-bg) !important;
+            color: var(--navbar-text) !important;
         }
+
         .search-bar {
-            background-color: #f8f9fa;
+            background-color: var(--search-bar-bg);
             padding: 1rem 0;
             top: 56px;
             z-index: 1020;
+            transition: background-color 0.3s ease;
         }
+
         .card {
             margin-bottom: 20px;
+            background-color: var(--card-bg);
+            transition: background-color 0.3s ease;
         }
+
         .card img {
             height: 200px;
             object-fit: cover;
         }
-        h1, h2 {
-            word-wrap: break-word;
-        }
+
         .nav-link i {
             margin-right: 0.5rem;
             width: 1.25em;
@@ -41,7 +76,6 @@
 <body>
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <!-- <a class="navbar-brand" href="{{ url_for('index') }}"> -->
             <a class="navbar-brand">
                 <i class="fas fa-video me-2"></i>{{ title }}
             </a>
@@ -55,7 +89,12 @@
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <!-- 导航项保持不变 -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleDarkMode()">
+                            <i id="theme-icon" class="fas fa-moon"></i>
+                            <span>主题切换</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">
                             <i class="fas fa-home"></i>首页
@@ -122,13 +161,9 @@
         {% block content %}{% endblock %}
     </div>
 
-    <button id="install-button" class="btn btn-secondary m-3" style="display: none;">
-        <i class="fas fa-download me-2"></i>安装应用
-    </button>
-
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
@@ -161,6 +196,36 @@
           }
         });
       }
+    </script>
+    <script>
+        // 主题切换功能
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            
+            // 保存用户偏好
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // 更新图标
+            const themeIcon = document.getElementById('theme-icon');
+            themeIcon.classList.toggle('fa-moon');
+            themeIcon.classList.toggle('fa-sun');
+        }
+
+        // 初始化主题
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').classList.add('fa-sun');
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', initializeTheme);
     </script>
 </body>
 </html>

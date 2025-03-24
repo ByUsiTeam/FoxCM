@@ -304,13 +304,13 @@ def search():
     return render_template('search_results.html', query=query, videos=search_results, title=title)
 
 # PWA
-@app.route('/manifest.json')
-def manifest():
-    return send_from_directory(base_path, 'manifest.json')
+# @app.route('/manifest.json')
+# def manifest():
+#     return send_from_directory(base_path, 'manifest.json')
 
-@app.route('/sw.js')
-def service_worker():
-    return send_from_directory(base_path, 'sw.js')
+# @app.route('/sw.js')
+# def service_worker():
+#     return send_from_directory(base_path, 'sw.js')
 
 @app.route('/favicon.ico')
 def favicon():
