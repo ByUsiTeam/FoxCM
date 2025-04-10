@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import json
@@ -151,48 +151,98 @@ def logout():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
+    # 身份验证检查
     if not session.get('logged_in'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': '请先登录', 'redirect': url_for('login')}), 401
         return redirect(url_for('login'))
+    
+    # 系统标题加载
     title = get_system_title()
-    if request.method == 'POST':
-        video_file = request.files['video']
-        cover_file = request.files['cover']
-        title_input = request.form['title']
-        description = request.form.get('description', '')
-        if not video_file or not cover_file or not title_input:
-            flash('视频文件、封面和标题是必填项！')
-            return redirect(url_for('upload'))
+    
+    # GET 请求处理（显示上传页面）
+    if request.method == 'GET':
+        return render_template('upload.html', title=title)
+    
+    # POST 请求处理（文件上传）
+    try:
+        # 字段验证
+        required_fields = {
+            'video': request.files.get('video'),
+            'cover': request.files.get('cover'),
+            'title': request.form.get('title', '').strip()
+        }
+        
+        # 检查必填字段
+        if not all(required_fields.values()):
+            error_msg = "视频文件、封面和标题是必填项"
+            return handle_response(error_msg, 400)
+        
+        # 文件类型验证
+        video_file = required_fields['video']
+        cover_file = required_fields['cover']
         if not allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
-            flash('视频格式不支持！支持格式：mp4, avi, mov')
-            return redirect(url_for('upload'))
+            return handle_response("视频格式不支持（仅限 mp4/avi/mov）", 400)
+        
         if not allowed_file(cover_file.filename, ALLOWED_COVER_EXTENSIONS):
-            flash('封面格式不支持！支持格式：jpg, jpeg, png')
-            return redirect(url_for('upload'))
-        video_filename = str(uuid.uuid4()) + '.' + video_file.filename.rsplit('.', 1)[1]
-        video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
-        video_file.save(video_path)
-        cover_filename = str(uuid.uuid4()) + '.' + cover_file.filename.rsplit('.', 1)[1]
-        cover_path = os.path.join(app.config['COVER_FOLDER'], cover_filename)
-        cover_file.save(cover_path)
+            return handle_response("封面格式不支持（仅限 jpg/png）", 400)
+        
+        # 生成唯一文件名
+        def generate_filename(file, prefix):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            return f"{prefix}-{uuid.uuid4()}.{ext}"
+        
+        video_filename = generate_filename(video_file, "video")
+        cover_filename = generate_filename(cover_file, "cover")
+        
+        # 保存文件
+        def save_upload(file_obj, filename, folder):
+            save_path = os.path.join(app.config[folder.upper() + '_FOLDER'], filename)
+            file_obj.save(save_path)
+            return save_path
+        
+        video_path = save_upload(video_file, video_filename, 'UPLOAD')
+        cover_path = save_upload(cover_file, cover_filename, 'COVER')
+        
+        # 记录元数据
         user = find_user_by_id(session['user_id'])
-        uploader_username = user['username'] if user else '未知用户'
-        upload_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         video_data = {
             "video_filename": video_filename,
             "cover_filename": cover_filename,
-            "title": title_input,
-            "description": description,
-            "uploader": uploader_username,
-            "upload_time": upload_time,
+            "title": required_fields['title'],
+            "description": request.form.get('description', ''),
+            "uploader": user['username'] if user else "未知用户",
+            "upload_time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             "user_id": session['user_id'],
             "play_count": 0
         }
+        
+        # 更新数据库
         videos = load_videos()
         videos.append(video_data)
         save_videos(videos)
-        flash('视频上传成功！')
-        return redirect(url_for('index'))
-    return render_template('upload.html', title=title)
+        
+        # 响应处理
+        return handle_response("视频上传成功", 200, url_for('index'))
+    
+    except Exception as e:
+        app.logger.error(f"上传错误: {str(e)}")
+        return handle_response(f"服务器错误: {str(e)}", 500)
+
+def handle_response(message, status_code=200, redirect_url=None):
+    """统一处理响应格式"""
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'success': status_code == 200,
+            'message': message,
+            'redirect': redirect_url
+        }), status_code
+    else:
+        if status_code != 200:
+            flash(message, 'danger')
+        else:
+            flash(message, 'success')
+        return redirect(redirect_url if redirect_url else url_for('upload'))
 
 @app.route('/play/<video_filename>')
 def play(video_filename):

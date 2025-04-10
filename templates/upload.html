@@ -2,7 +2,7 @@
 {% block content %}
 <title>{{ title }} - 上传视频</title>
 <h2>上传视频</h2>
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="uploadForm">
     <div class="form-group">
         <label for="video">选择视频文件</label>
         <input type="file" class="form-control" id="video" name="video" 
@@ -23,6 +23,83 @@
         <label for="description">视频简介（可选）</label>
         <textarea class="form-control" id="description" name="description"></textarea>
     </div>
-    <button type="submit" class="btn btn-primary">上传</button>
+    <button type="button" class="btn btn-primary" onclick="startUpload()">上传</button>
 </form>
+
+<!-- 上传进度条 -->
+<div class="progress mt-3" id="progressBar" style="display: none;">
+  <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" 
+       aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+</div>
+
+<!-- 消息提示容器 -->
+<div id="messageAlert" class="mt-3" style="display: none;"></div>
+
+<script>
+function startUpload() {
+    const form = document.getElementById('uploadForm');
+    const formData = new FormData(form);
+    const xhr = new XMLHttpRequest();
+    const progressBar = document.getElementById('progressBar');
+    const progressBarInner = progressBar.querySelector('.progress-bar');
+    const messageAlert = document.getElementById('messageAlert');
+
+    // 重置提示信息并显示进度条
+    messageAlert.style.display = 'none';
+    progressBar.style.display = 'block';
+    progressBarInner.style.width = '0%';
+    progressBarInner.textContent = '0%';
+
+    xhr.open('POST', '/upload', true);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    // 上传进度监听
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBarInner.style.width = percent + '%';
+            progressBarInner.textContent = percent + '%';
+        }
+    });
+
+    xhr.onload = function() {
+        progressBar.style.display = 'none';
+        if (xhr.status === 200) {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    // 显示成功消息并跳转
+                    showAlert('success', response.message);
+                    setTimeout(() => {
+                        window.location.href = response.redirect;
+                    }, 1500);
+                } else {
+                    showAlert('danger', '上传失败：' + response.message);
+                }
+            } catch (e) {
+                showAlert('danger', '响应解析错误：' + e.message);
+            }
+        } else {
+            showAlert('danger', '上传失败，状态码：' + xhr.status);
+        }
+    };
+
+    xhr.onerror = function() {
+        progressBar.style.display = 'none';
+        showAlert('danger', '网络错误，上传失败。');
+    };
+
+    xhr.send(formData);
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.getElementById('messageAlert');
+    alertDiv.style.display = 'block';
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+}
+</script>
 {% endblock %}
