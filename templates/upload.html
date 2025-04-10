@@ -1,40 +1,111 @@
 {% extends 'base.html' %}
 {% block content %}
 <title>{{ title }} - 上传视频</title>
-<h2>上传视频</h2>
-<form method="POST" enctype="multipart/form-data" id="uploadForm">
-    <div class="form-group">
-        <label for="video">选择视频文件</label>
-        <input type="file" class="form-control" id="video" name="video" 
-               accept=".mp4, .avi, .mov" required>
-        <small class="form-text text-muted">仅支持格式：mp4, avi, mov</small>
-    </div>
-    <div class="form-group">
-        <label for="cover">选择视频封面</label>
-        <input type="file" class="form-control" id="cover" name="cover" 
-               accept=".jpg, .jpeg, .png, .gif" required>
-        <small class="form-text text-muted">仅支持格式：jpg, jpeg, png</small>
-    </div>
-    <div class="form-group">
-        <label for="title">视频标题</label>
-        <input type="text" class="form-control" id="title" name="title" required>
-    </div>
-    <div class="form-group">
-        <label for="description">视频简介（可选）</label>
-        <textarea class="form-control" id="description" name="description"></textarea>
-    </div>
-    <button type="button" class="btn btn-primary" onclick="startUpload()">上传</button>
-</form>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <!-- 上传卡片 -->
+            <div class="bg-white rounded-4 shadow-sm p-4 p-lg-5">
+                <!-- 标题区 -->
+                <div class="text-center mb-5">
+                    <div class="icon-lg bg-primary bg-opacity-10 text-primary rounded-3 mb-3">
+                        <i class="bi bi-cloud-arrow-up-fill fs-2"></i>
+                    </div>
+                    <h1 class="h3 mb-2">上传新视频</h1>
+                    <p class="text-muted">支持MP4/AVI/MOV格式，最大2GB</p>
+                </div>
 
-<!-- 上传进度条 -->
-<div class="progress mt-3" id="progressBar" style="display: none;">
-  <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" 
-       aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                <!-- 上传表单 -->
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <!-- 视频文件 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">视频文件</label>
+                        <div class="file-upload-card">
+                            <input type="file" class="form-control" 
+                                   id="video" name="video" accept=".mp4, .avi, .mov" required>
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="bi bi-film me-2 text-muted"></i>
+                                <small class="text-muted">选择要上传的视频文件</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 封面图片 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">视频封面</label>
+                        <div class="file-upload-card">
+                            <input type="file" class="form-control" 
+                                   id="cover" name="cover" accept=".jpg, .jpeg, .png" required>
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="bi bi-image me-2 text-muted"></i>
+                                <small class="text-muted">建议尺寸1280×720px</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 标题输入 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">视频标题</label>
+                        <input type="text" class="form-control form-control-lg" 
+                               id="title" name="title" placeholder="请输入视频标题" required>
+                    </div>
+
+                    <!-- 简介输入 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">视频简介</label>
+                        <textarea class="form-control" id="description" name="description"
+                                  rows="3" placeholder="添加视频描述（可选）"></textarea>
+                    </div>
+
+                    <!-- 上传按钮 -->
+                    <div class="d-grid mt-4">
+                        <button type="button" class="btn btn-primary btn-lg py-3" 
+                                onclick="startUpload()">
+                            <i class="bi bi-upload me-2"></i>立即上传
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 进度条 -->
+                <div class="progress mt-4" id="progressBar" style="display: none; height: 8px;">
+                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+
+                <!-- 提示信息 -->
+                <div id="messageAlert" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- 消息提示容器 -->
-<div id="messageAlert" class="mt-3" style="display: none;"></div>
-
+<style>
+.file-upload-card {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+}
+.file-upload-card:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+.icon-lg {
+    width: 64px;
+    height: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.progress-bar {
+    border-radius: 4px;
+}
+.form-control-lg {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+</style>
 <script>
 function startUpload() {
     const form = document.getElementById('uploadForm');
