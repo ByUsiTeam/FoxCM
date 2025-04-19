@@ -128,6 +128,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title=title)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     title = get_system_title()
