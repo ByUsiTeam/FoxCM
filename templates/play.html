@@ -8,7 +8,7 @@
     <div class="card shadow-lg">
         <div class="card-body">
             <h3 class="card-title mb-4 text-center">播放视频</h3>
-            <div id="art-player" class="rounded overflow-hidden"></div>
+            <div id="dplayer" class="rounded overflow-hidden"></div>
         </div>
     </div>
     
@@ -89,198 +89,65 @@
     </div>
 </div>
 
-<!-- ArtPlayer 依赖 -->
-<link href="{{ url_for('static', filename='css/artplayer.css') }}" rel="stylesheet">
-<script src="{{ url_for('static', filename='js/artplayer.js') }}"></script>
-<script src="{{ url_for('static', filename='js/flv.js') }}"></script>
-<script src="{{ url_for('static', filename='js/hls.js') }}"></script>
+<!-- 引入 DPlayer -->
+<!-- <link href="/static/css/DPlayer.min.css" rel="stylesheet">
+<script src="/static/js/DPlayer.min.js"></script>
+<script src="/static/js/hls.js"></script>
+<script src="/static/js/flv.js"></script> -->
+<link href="/static/css/BeatifIntredPlayer.min.css" rel="stylesheet">
+<script src="/static/js/BeatifIntredPlayer.min.js"></script>
 
 <style>
-    /* 播放器容器样式 */
-    #art-player {
-        width: 100%;
-        height: 500px;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #000;
+    /* 自定义播放器样式 
+    .dplayer-controller {
+        background: rgba(255, 255, 255, 0.9) !important;
     }
-
-    /* 自定义图标样式 */
-    .art-icon-loading img,
-    .art-icon-state img,
-    .art-icon-indicator img {
-        vertical-align: middle;
-        object-fit: contain;
+    .dplayer-icons .dplayer-icon {
+        color: #495057;
     }
-
-    .art-icon-loading img {
-        width: 40px !important;
-        height: 40px !important;
+    .dplayer-icons .dplayer-icon:hover {
+        color: #007bff;
     }
-
-    .art-icon-state img {
-        width: 150px !important;
-        height: 150px !important;
+    .dplayer-setting-box {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid #dee2e6;
     }
-
-    .art-icon-indicator img {
-        width: 16px !important;
-        height: 16px !important;
-    }
+    .dplayer-setting-item:hover {
+        background-color: #f8f9fa !important;
+    } */
 </style>
-
 <script>
-    // 初始化 ArtPlayer
-    const art = new Artplayer({
-        container: '#art-player',
-        url: "{{ url_for('static', filename='uploads/videos/' + video.video_filename) }}",
-        title: '{{ video.title }}',
-        poster: "{{ url_for('static', filename='uploads/covers/' + video.cover_filename) }}",
-        volume: 0.5,
-        isLive: false,
+    const dp = new DPlayer({
+        container: document.getElementById('dplayer'),
+        video: {
+            url: "{{ url_for('static', filename='uploads/videos/' + video.video_filename) }}",
+            pic: "{{ url_for('static', filename='uploads/covers/' + video.cover_filename) }}",
+            type: 'auto'
+        },
+        theme: '#007bff',
         autoplay: false,
-        autoSize: true,
-        autoMini: true,
-        screenshot: true,
-        setting: true,
-        loop: false,
-        flip: true,
-        playbackRate: true,
-        aspectRatio: true,
-        fullscreen: true,
-        fullscreenWeb: true,
-        subtitleOffset: true,
-        miniProgressBar: true,
-        mutex: true,
-        backdrop: true,
-        theme: '#2196F3',
-        /*icons: {
-            loading: '<img src="{{ url_for("static", filename="images/player/loading.gif") }}">',
-            state: '<img src="{{ url_for("static", filename="images/player/state.svg") }}">',
-            indicator: '<img src="{{ url_for("static", filename="images/player/indicator.svg") }}">'
-        },
-        */
-        moreVideoAttr: {
-            crossOrigin: 'anonymous',
-        },
-        customType: {
-            hls: function(video, url) {
-                const hls = new Hls({
-                    enableWorker: true,
-                    maxBufferLength: 30,
-                    maxMaxBufferLength: 600,
-                });
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    console.error('HLS Error:', data);
-                    art.notice.show('视频加载失败，请检查格式兼容性', 3000);
-                });
-            },
-            flv: function(video, url) {
-                const flvPlayer = flvjs.createPlayer({
-                    type: 'flv',
-                    url: url,
-                    isLive: false,
-                    hasAudio: true,
-                    hasVideo: true,
-                });
-                flvPlayer.attachMediaElement(video);
-                flvPlayer.load();
-                flvPlayer.on(flvjs.Events.ERROR, (errType, errDetail) => {
-                    console.error('FLV Error:', errType, errDetail);
-                    art.notice.show('FLV格式加载失败', 3000);
-                });
+        contextmenu: [
+            {
+                text: '视频信息',
+                click: () => {
+                    alert(`视频标题：${document.title}\n上传者：{{ video.uploader }}`);
+                }
             }
-        },
-        plugins: [
-            artplayerPluginQuality({
-                // 清晰度切换插件配置
-                control: true,
-                setting: true,
-                getResolution: (video) => [
-                    {
-                        default: true,
-                        html: '自动',
-                        url: video.url,
-                    },
-                ],
-            }),
         ],
+        playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2, 5, 10],  /* 添加速度选项 */
+        settings: ['speed', 'loop'],
+        hotkey: true
     });
-
-    // ================= 事件监听 =================
-    // 播放进度保存
-    art.on('video:timeupdate', () => {
-        localStorage.setItem('videoProgress-{{ video.video_filename }}', art.currentTime);
+    
+    // 自动记录播放进度
+    dp.on('timeupdate', () => {
+        localStorage.setItem('videoProgress-{{ video.video_filename }}', dp.video.currentTime);
     });
-
+    
     // 恢复播放进度
     const savedTime = localStorage.getItem('videoProgress-{{ video.video_filename }}');
     if (savedTime) {
-        art.seek(parseFloat(savedTime));
+        dp.seek(savedTime);
     }
-
-    // 播放统计
-    art.on('video:play', () => {
-        navigator.sendBeacon('/api/play-count/{{ video.video_filename }}');
-    });
-
-    // 错误处理
-    art.on('video:error', (error) => {
-        console.error('播放错误:', error);
-        art.notice.show('视频加载失败，请尝试以下操作：<br>1. 刷新页面<br>2. 更换浏览器', 5000);
-    });
-
-    // 分辨率变化监听
-    art.on('video:resize', (size) => {
-        console.log('当前分辨率:', size.width + 'x' + size.height);
-    });
-
-    // 快捷键支持
-    art.on('keydown:space', (event) => {
-        art.toggle();
-        event.preventDefault();
-    });
-
-    // 全屏变化监听
-    art.on('fullscreen', (state) => {
-        console.log('全屏状态:', state);
-    });
-
-    // ================= 扩展功能 =================
-    // 自定义右键菜单
-    art.contextmenu.add({
-        name: '视频信息',
-        callback: () => {
-            art.notice.show(`
-                <div style="text-align: left; padding: 10px">
-                    <p>标题：{{ video.title }}</p>
-                    <p>上传者：{{ video.uploader }}</p>
-                    <p>格式：${art.isVideo ? video.videoFilename.split('.').pop().toUpperCase() : '未知'}</p>
-                    <p>分辨率：${art.video.videoWidth}x${art.video.videoHeight}</p>
-                </div>
-            `, 4000);
-        }
-    });
-
-    /* 播放结束处理
-    art.on('video:ended', () => {
-        art.notice.show('播放结束，即将推荐相似视频...', 3000);
-        setTimeout(() => {
-            // 这里可以添加推荐视频逻辑
-        }, 3000);
-    });
-    */
-
-    // 网络状态检测
-    window.addEventListener('online', () => {
-        art.notice.show('网络已恢复', 2000);
-    });
-
-    window.addEventListener('offline', () => {
-        art.notice.show('网络连接已断开', 3000);
-    });
 </script>
 {% endblock %}
