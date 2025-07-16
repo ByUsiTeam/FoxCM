@@ -1,0 +1,15 @@
+{
+  "title": "FoxCM",
+  "webdav_video": {
+    "enabled": true,
+    "url": "WebDavUrl",
+    "username": "WebDavUsername",
+    "password": "WebDavPassword"
+  },
+  "webdav_cover": {
+    "enabled": true,
+    "url": "WebDavUrl",
+    "username": "WebDavUsername",
+    "password": "WebDavPassword"
+  }
+}
