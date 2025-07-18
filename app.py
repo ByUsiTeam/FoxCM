@@ -66,30 +66,49 @@ app.logger.addHandler(rich_handler)
 # 重写Werkzeug的日志处理器以使用Rich
 class RichRequestHandler(werkzeug.serving.WSGIRequestHandler):
     def log(self, type, message, *args):
-        if type in ['error', 'warning']:
-            app.logger.log(logging.INFO if type == 'info' else logging.getLevelName(type.upper()), message % args)
-        else:
-            # 格式化访问日志
-            status_code = int(message.split()[1])
-            method = message.split()[0][1:-1]  # 去掉方括号
-            path = message.split()[2]
-            
-            # 根据状态码设置颜色
-            if status_code >= 500:
-                color = "bold red"
-            elif status_code >= 400:
-                color = "bold yellow"
-            elif status_code >= 300:
-                color = "bold blue"
-            else:
-                color = "bold green"
+        try:
+            # 尝试解析请求日志
+            if type == 'info' and message == '"%s" %s %s':
+                # 这是标准请求日志格式
+                request_line = args[0] if len(args) > 0 else ''
+                status_code = args[1] if len(args) > 1 else '000'
+                response_size = args[2] if len(args) > 2 else '-'
                 
-            # 创建富格式日志
-            log_message = f"[bold]{self.address_string()}[/bold] - - [{self.log_date_time_string()}] "
-            log_message += f"[{color}]{method} {path} {status_code}[/{color}]"
-            
-            # 发送到Rich处理器
-            app.logger.info(log_message)
+                # 确保状态码是整数
+                try:
+                    status_code = int(status_code)
+                except (ValueError, TypeError):
+                    status_code = 000
+                
+                # 根据状态码设置颜色
+                if status_code >= 500:
+                    color = "bold red"
+                elif status_code >= 400:
+                    color = "bold yellow"
+                elif status_code >= 300:
+                    color = "bold blue"
+                else:
+                    color = "bold green"
+                    
+                # 创建富格式日志
+                log_message = f"[bold]{self.address_string()}[/bold] - - [{self.log_date_time_string()}] "
+                log_message += f"[{color}]{request_line} {status_code} {response_size}[/{color}]"
+                
+                # 发送到Rich处理器
+                app.logger.info(log_message)
+            else:
+                # 其他类型的日志直接格式化
+                formatted_message = message % args
+                if type == 'error':
+                    app.logger.error(formatted_message)
+                elif type == 'warning':
+                    app.logger.warning(formatted_message)
+                else:
+                    app.logger.info(formatted_message)
+        except Exception as e:
+            # 如果解析失败，记录原始消息
+            app.logger.error(f"日志处理错误: {str(e)}")
+            app.logger.info(f"原始消息: {message} | 参数: {args}")
 
 # 设置自定义请求处理器
 werkzeug.serving.WSGIRequestHandler = RichRequestHandler
@@ -114,7 +133,7 @@ os.makedirs(data_folder, exist_ok=True)
 console.print("=" * 60, style="bold blue")
 console.print(f"{'FoxCM 媒体分享平台':^60}", style="bold green")
 console.print(f"{'版本: 1.2.0':^60}", style="bold yellow")
-console.print(f"{'作者: ByUsi':^60}", style="bold magenta")
+console.print(f"{'作者: FoxHome':^60}", style="bold magenta")
 console.print("=" * 60, style="bold blue")
 console.print(f"基础路径: {base_path}", style="cyan")
 console.print(f"模板目录: {template_folder}", style="cyan")
@@ -856,4 +875,8 @@ if not os.path.exists(SYSTEM_DATA):
     app.logger.info("创建系统配置文件")
 
 if __name__ == '__main__':
+    app.logger.info("=" * 60)
+    app.logger.info("FoxCM 服务启动")
+    app.logger.info(f"运行地址: http://0.0.0.0:6544")
+    app.logger.info("=" * 60)
     app.run(host='0.0.0.0', port=6544, debug=True)

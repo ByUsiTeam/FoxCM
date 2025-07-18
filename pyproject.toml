@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FoxCM"
+version = "1.2.0"
+description = "FoxCM 媒体分享平台"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache License Version 2.0"}
+authors = [
+    {name = "北", email = "admin@work.byusi.cn"}
+]
+dependencies = [
+    "Flask>=2.0",
+    "requests>=2.26",
+    "rich>=12.0",
+    "werkzeug>=2.0",
+    "python-dotenv>=0.19",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-flask>=1.2",
+    "coverage>=6.2",
+    "flake8>=4.0",
+    "black>=22.0",
+    "isort>=5.10",
+]
