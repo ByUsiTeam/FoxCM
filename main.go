@@ -1192,6 +1192,9 @@ func setupWebRoutes(r *gin.Engine) {
 			session.AddFlash("评论不存在！", "error")
 		}
 
+		// 确保 userID 被使用
+		_ = userID
+
 		session.Save()
 		c.Redirect(http.StatusFound, "/play/"+videoFilename)
 	})
@@ -1229,6 +1232,9 @@ func setupWebRoutes(r *gin.Engine) {
 		session.AddFlash("点赞成功！", "success")
 		session.Save()
 		c.Redirect(http.StatusFound, "/play/"+videoFilename)
+
+		// 确保 userID 被使用
+		_ = userID
 	})
 
 	// WebSocket连接
@@ -1514,7 +1520,7 @@ func main() {
 	fmt.Println("=" + strings.Repeat("=", 60))
 	fmt.Println("FoxCM 媒体分享平台 - Go重构版")
 	fmt.Println("版本: 2.0.0")
-	fmt.Println("作者: FoxHome")
+	fmt.Println("作者: ByUsi 北")
 	fmt.Println("=" + strings.Repeat("=", 60))
 	fmt.Printf("运行地址: http://0.0.0.0:%s\n", Port)
 	fmt.Printf("API地址: http://0.0.0.0:%s/api/v1/\n", Port)
