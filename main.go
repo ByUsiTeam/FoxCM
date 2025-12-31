@@ -420,6 +420,21 @@ func templateFunctions() template.FuncMap {
 			}
 			return s[:length] + "..."
 		},
+		"now": func() time.Time {
+			return time.Now()
+		},
+		"slice": func(s string, start, end int) string {
+			if start < 0 {
+				start = 0
+			}
+			if end > len(s) {
+				end = len(s)
+			}
+			if start > end {
+				return ""
+			}
+			return s[start:end]
+		},
 	}
 }
 
@@ -1269,7 +1284,7 @@ func setupWebRoutes(r *gin.Engine) {
 	})
 
 	r.GET("/static/uploads/avatars/:filename", func(c *gin.Context) {
-		filename := c.Param("filename")
+		filename := c.Param("username")
 		filePath := filepath.Join(AvatarFolder, filename)
 
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
