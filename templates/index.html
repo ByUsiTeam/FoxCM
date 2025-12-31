@@ -1,0 +1,42 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div class="card">
+    <h1>视频列表</h1>
+    <div style="display: flex; gap: 1rem; margin: 1rem 0;">
+        <a href="/?sort=hot" class="btn {{if eq .sort "hot"}}active{{end}}">热门</a>
+        <a href="/?sort=newest" class="btn {{if eq .sort "newest"}}active{{end}}">最新</a>
+        <a href="/?sort=likes" class="btn {{if eq .sort "likes"}}active{{end}}">点赞</a>
+        <a href="/?sort=views" class="btn {{if eq .sort "views"}}active{{end}}">播放</a>
+    </div>
+</div>
+
+<div class="video-grid">
+    {{range .videos}}
+    <div class="video-card">
+        <a href="/play/{{.VideoFilename}}">
+            <img src="/static/uploads/covers/{{.CoverFilename}}" alt="{{.Title}}" class="video-thumbnail">
+        </a>
+        <div class="video-info">
+            <h3 class="video-title">{{.Title}}</h3>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">{{truncate .Description 60}}</p>
+            <div class="video-meta">
+                <span>{{.Uploader}}</span>
+                <span>{{formatTime .UploadTime}}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                <span style="color: #666; font-size: 0.85rem;">👁️ {{formatNumber .PlayCount}}</span>
+                <span style="color: #666; font-size: 0.85rem;">❤️ {{formatNumber .LikeCount}}</span>
+                <span style="color: #666; font-size: 0.85rem;">💬 {{formatNumber .CommentCount}}</span>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+{{if not .videos}}
+<div class="card">
+    <p style="text-align: center; color: #666;">暂无视频，赶紧上传第一个吧！</p>
+</div>
+{{end}}
+{{end}}

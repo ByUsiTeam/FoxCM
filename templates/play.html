@@ -1,0 +1,101 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div class="card">
+    <h1>{{.video.Title}}</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="color: #666;">👁️ {{formatNumber .video.PlayCount}}</span>
+            <span style="color: #666;">❤️ {{formatNumber .video.LikeCount}}</span>
+            <span style="color: #666;">💬 {{formatNumber .video.CommentCount}}</span>
+            <span style="color: #666;">📅 {{formatTime .video.CreatedAt}}</span>
+        </div>
+        <form method="POST" action="/like_video" style="display: inline;">
+            <input type="hidden" name="video_filename" value="{{.video.VideoFilename}}">
+            <button type="submit" class="btn">点赞视频</button>
+        </form>
+    </div>
+    
+    <div style="margin-bottom: 2rem;">
+        <video controls style="width: 100%; max-height: 500px; border-radius: 8px;">
+            <source src="/stream/{{.video.VideoFilename}}" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+    
+    <p style="margin-bottom: 1.5rem;">{{.video.Description}}</p>
+    
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+        <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden;">
+            {{if .uploader.AvatarFile}}
+                <img src="/static/uploads/avatars/{{.uploader.AvatarFile}}" alt="{{.uploader.Username}}" style="width: 100%; height: 100%; object-fit: cover;">
+            {{else}}
+                <div style="width: 100%; height: 100%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    {{slice .uploader.Username 0 1}}
+                </div>
+            {{end}}
+        </div>
+        <div>
+            <h4 style="margin: 0;"><a href="/user/{{.uploader.Username}}">{{.uploader.Username}}</a></h4>
+            <small style="color: #666;">上传于 {{formatTime .video.CreatedAt}}</small>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>评论 ({{len .comments}})</h3>
+    
+    {{if .comments}}
+        {{range $index, $comment := .comments}}
+        <div style="padding: 1rem; border-bottom: 1px solid #eee; {{if eq $index 0}}border-top: 1px solid #eee;{{end}}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <strong>{{$comment.Username}}</strong>
+                <small style="color: #666;">{{formatTime $comment.CreatedAt}}</small>
+            </div>
+            <p style="margin-bottom: 0.5rem;">{{$comment.Text}}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <form method="POST" action="/like_comment" style="display: inline;">
+                    <input type="hidden" name="video_filename" value="{{$.video.VideoFilename}}">
+                    <input type="hidden" name="comment_index" value="{{$index}}">
+                    <button type="submit" style="background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem;">
+                        ❤️ 点赞 ({{$comment.Likes}})
+                    </button>
+                </form>
+            </div>
+        </div>
+        {{end}}
+    {{else}}
+        <p style="text-align: center; color: #666; padding: 2rem 0;">暂无评论，快来抢沙发吧！</p>
+    {{end}}
+    
+    <form method="POST" action="/comment" style="margin-top: 2rem;">
+        <input type="hidden" name="video_filename" value="{{.video.VideoFilename}}">
+        <div class="form-group">
+            <textarea name="comment_text" class="form-control" rows="3" placeholder="写下你的评论..." required></textarea>
+        </div>
+        <button type="submit" class="btn">发表评论</button>
+    </form>
+</div>
+
+{{if .relatedVideos}}
+<div class="card">
+    <h3>相关视频</h3>
+    <div class="video-grid">
+        {{range .relatedVideos}}
+        <div class="video-card">
+            <a href="/play/{{.VideoFilename}}">
+                <img src="/static/uploads/covers/{{.CoverFilename}}" alt="{{.Title}}" class="video-thumbnail">
+            </a>
+            <div class="video-info">
+                <h4 class="video-title">{{truncate .Title 40}}</h4>
+                <div class="video-meta">
+                    <span>{{.Uploader}}</span>
+                    <span>{{formatTime .UploadTime}}</span>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,116 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div class="card">
+    <h1>管理面板</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 style="color: #667eea;">用户统计</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">{{.stats.total_users}}</p>
+        <p>注册用户</p>
+    </div>
+    
+    <div class="card">
+        <h3 style="color: #28a745;">视频统计</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">{{.stats.total_videos}}</p>
+        <p>总视频数</p>
+    </div>
+    
+    <div class="card">
+        <h3 style="color: #ffc107;">评论统计</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">{{.stats.total_comments}}</p>
+        <p>总评论数</p>
+    </div>
+    
+    <div class="card">
+        <h3 style="color: #dc3545;">今日上传</h3>
+        <p style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">{{.stats.today_uploads}}</p>
+        <p>今日新视频</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>系统设置</h2>
+    <form method="POST" action="/admin/action" style="max-width: 500px;">
+        <input type="hidden" name="action" value="update_system">
+        <div class="form-group">
+            <label class="form-label">网站标题</label>
+            <input type="text" name="title" value="{{.title}}" class="form-control">
+        </div>
+        <button type="submit" class="btn">保存设置</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>用户管理</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">ID</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">用户名</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">注册时间</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">最后登录</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .users}}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 1rem;">{{.ID}}</td>
+                    <td style="padding: 1rem;">{{.Username}}{{if .IsAdmin}} <span style="background: #dc3545; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">管理员</span>{{end}}</td>
+                    <td style="padding: 1rem;">{{formatTime .CreatedAt}}</td>
+                    <td style="padding: 1rem;">{{formatTime .LastLogin}}</td>
+                    <td style="padding: 1rem;">
+                        {{if not .IsAdmin}}
+                        <form method="POST" action="/admin/action" style="display: inline;">
+                            <input type="hidden" name="action" value="delete_user">
+                            <input type="hidden" name="user_id" value="{{.ID}}">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('确定删除用户 {{.Username}} 吗？')">删除</button>
+                        </form>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>视频管理</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">标题</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">上传者</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">播放</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">点赞</th>
+                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .videos}}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 1rem;">{{.Title}}</td>
+                    <td style="padding: 1rem;">{{.Uploader}}</td>
+                    <td style="padding: 1rem;">{{.PlayCount}}</td>
+                    <td style="padding: 1rem;">{{.LikeCount}}</td>
+                    <td style="padding: 1rem;">
+                        <a href="/play/{{.VideoFilename}}" class="btn" style="margin-right: 0.5rem;">查看</a>
+                        <form method="POST" action="/admin/action" style="display: inline;">
+                            <input type="hidden" name="action" value="delete_video">
+                            <input type="hidden" name="video_filename" value="{{.VideoFilename}}">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('确定删除视频 {{.Title}} 吗？')">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
